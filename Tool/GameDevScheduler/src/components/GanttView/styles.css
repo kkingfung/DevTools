@@ -1,0 +1,79 @@
+.gantt-container {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.gantt-header {
+  display: flex;
+  border-bottom: 1px solid #e8e8e8;
+  background: #fafafa;
+}
+.gantt-member-col {
+  width: 200px;
+  min-width: 200px;
+  padding: 12px;
+  font-weight: bold;
+  border-right: 1px solid #e8e8e8;
+}
+.gantt-timeline {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+}
+.gantt-day {
+  min-width: 60px;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+  border-right: 1px solid #f0f0f0;
+}
+.gantt-body {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+.gantt-group {
+  border-bottom: 1px solid #e8e8e8;
+}
+.gantt-member-name {
+  padding: 8px 12px;
+  background: #fafafa;
+  font-weight: 500;
+  border-bottom: 1px solid #f0f0f0;
+}
+.gantt-task-row {
+  display: flex;
+  border-bottom: 1px solid #f0f0f0;
+}
+.gantt-task-name {
+  width: 200px;
+  min-width: 200px;
+  padding: 8px 12px;
+  border-right: 1px solid #e8e8e8;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gantt-task-bar-container {
+  flex: 1;
+  position: relative;
+  height: 36px;
+}
+.gantt-task-bar {
+  position: absolute;
+  top: 4px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: white;
+  font-size: 12px;
+  overflow: hidden;
+}
+.gantt-task-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
