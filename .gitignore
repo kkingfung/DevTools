@@ -1,0 +1,27 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.user
+*.sln
+*.csproj
+
+# Unity meta files (keep these if copying to Unity project)
+# *.meta
+
+# Claude Code
+.claude/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Build outputs
+**/target/
+**/node_modules/
+**/dist/
