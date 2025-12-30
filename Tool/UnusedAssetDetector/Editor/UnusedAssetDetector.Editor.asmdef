@@ -1,0 +1,16 @@
+{
+    "name": "UnusedAssetDetector.Editor",
+    "rootNamespace": "UnusedAssetDetector",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
