@@ -1,0 +1,15 @@
+# Core
+gradio>=4.0.0
+pyyaml>=6.0
+
+# Cloud providers (install as needed)
+replicate>=0.20.0
+fal-client>=0.3.0
+
+# AI Voice/TTS (optional)
+# elevenlabs>=0.2.0
+# openai>=1.0.0
+
+# Optional: for local development
+# torch>=2.0.0
+# diffusers>=0.25.0

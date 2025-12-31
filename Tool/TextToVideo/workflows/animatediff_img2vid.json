@@ -1,0 +1,137 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "dreamshaper_8.safetensors"
+    },
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "2": {
+    "class_type": "ADE_LoadAnimateDiffModel",
+    "inputs": {
+      "model_name": "mm_sd_v15_v2.ckpt"
+    },
+    "_meta": {
+      "title": "Load AnimateDiff Model"
+    }
+  },
+  "3": {
+    "class_type": "ADE_ApplyAnimateDiffModel",
+    "inputs": {
+      "model": ["1", 0],
+      "motion_model": ["2", 0],
+      "start_percent": 0.0,
+      "end_percent": 1.0
+    },
+    "_meta": {
+      "title": "Apply AnimateDiff Model"
+    }
+  },
+  "4": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input.png"
+    },
+    "_meta": {
+      "title": "Load Reference Image"
+    }
+  },
+  "5": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": ["4", 0],
+      "upscale_method": "lanczos",
+      "width": 512,
+      "height": 512,
+      "crop": "center"
+    },
+    "_meta": {
+      "title": "Scale Image"
+    }
+  },
+  "6": {
+    "class_type": "VAEEncode",
+    "inputs": {
+      "pixels": ["5", 0],
+      "vae": ["1", 2]
+    },
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "7": {
+    "class_type": "RepeatLatentBatch",
+    "inputs": {
+      "samples": ["6", 0],
+      "amount": 16
+    },
+    "_meta": {
+      "title": "Repeat for Animation Frames"
+    }
+  },
+  "8": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "a beautiful scene, cinematic motion, smooth animation",
+      "clip": ["1", 1]
+    },
+    "_meta": {
+      "title": "Positive Prompt"
+    }
+  },
+  "9": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "ugly, blurry, static, no motion, distorted",
+      "clip": ["1", 1]
+    },
+    "_meta": {
+      "title": "Negative Prompt"
+    }
+  },
+  "10": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 0,
+      "steps": 20,
+      "cfg": 7.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "denoise": 0.6,
+      "model": ["3", 0],
+      "positive": ["8", 0],
+      "negative": ["9", 0],
+      "latent_image": ["7", 0]
+    },
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "11": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["10", 0],
+      "vae": ["1", 2]
+    },
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "12": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["11", 0],
+      "frame_rate": 8,
+      "loop_count": 0,
+      "filename_prefix": "AnimateDiff_I2V",
+      "format": "video/h264-mp4",
+      "pingpong": false,
+      "save_output": true
+    },
+    "_meta": {
+      "title": "Video Combine"
+    }
+  }
+}

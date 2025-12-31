@@ -31,6 +31,7 @@ Unity用エディタ拡張からスタンドアロンのデスクトップアプ
 | ツール名 | 説明 | 使い方 |
 |---------|------|--------|
 | **GameDevScheduler** | ゲーム開発チーム向けスケジュール管理ツール。ガントチャート、カレンダー、テーブルビューでタスク管理。Tauri 2.0ベースのデスクトップアプリ | `Tool/GameDevScheduler` ディレクトリで `npm install && npm run tauri dev` を実行 |
+| **TextToVideo** | AIテキスト→ビデオ生成ツール。Replicate/Fal.ai/ComfyUI対応。5秒〜90秒のビデオ生成、BGM/効果音追加、AI音楽生成機能付き。Gradio Web UI | `Tool/TextToVideo` ディレクトリで `pip install -r requirements.txt && python run.py` → ブラウザで http://127.0.0.1:7860 を開く |
 
 ---
 
@@ -53,9 +54,13 @@ DevTools/
 │   ├── LogicPresentationSync/
 │   │   ├── Runtime/                # ランタイムコンポーネント
 │   │   └── Editor/                 # Unity Editor拡張
-│   └── GameDevScheduler/           # Tauri 2.0 デスクトップアプリ
-│       ├── src/                    # React フロントエンド
-│       ├── src-tauri/              # Rust バックエンド
+│   ├── GameDevScheduler/           # Tauri 2.0 デスクトップアプリ
+│   │   ├── src/                    # React フロントエンド
+│   │   ├── src-tauri/              # Rust バックエンド
+│   │   └── README.md               # 詳細ドキュメント
+│   └── TextToVideo/                # AI ビデオ生成ツール
+│       ├── src/                    # Python ソースコード
+│       ├── workflows/              # ComfyUI ワークフロー
 │       └── README.md               # 詳細ドキュメント
 ```
 
@@ -80,6 +85,23 @@ npm run tauri dev
 ビルドする場合:
 ```bash
 npm run tauri build
+```
+
+### TextToVideo の起動
+
+```bash
+cd Tool/TextToVideo
+pip install -r requirements.txt
+python run.py
+```
+
+ブラウザで http://127.0.0.1:7860 を開く。
+
+APIキーの設定（初回のみ）:
+```bash
+# config.yaml を作成してAPIキーを設定
+copy config.example.yaml config.yaml
+# config.yaml を編集してReplicate/Fal.aiのAPIキーを追加
 ```
 
 ---

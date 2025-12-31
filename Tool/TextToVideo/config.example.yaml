@@ -1,0 +1,47 @@
+# Text to Video Generator 設定ファイル
+# このファイルを config.yaml にコピーして使用してください
+
+# 出力ディレクトリ
+output_dir: "./outputs"
+
+# デフォルトプロバイダー (replicate, fal, runway, comfyui)
+default_provider: "replicate"
+
+# FFmpegパス (PATHにあれば "ffmpeg" でOK)
+ffmpeg_path: "ffmpeg"
+
+# プロバイダー設定
+providers:
+  replicate:
+    enabled: true
+    api_key: ""  # または環境変数 REPLICATE_API_TOKEN を設定
+    model: "minimax"  # minimax, luma, stable-video
+
+  fal:
+    enabled: true
+    api_key: ""  # または環境変数 FAL_KEY を設定
+    model: "minimax"  # minimax, kling, luma, hunyuan
+
+  runway:
+    enabled: false
+    api_key: ""  # または環境変数 RUNWAY_API_KEY を設定
+
+  comfyui:
+    enabled: true
+    url: "http://127.0.0.1:8188"
+    workflow_path: ""  # カスタムワークフローのパス（空ならデフォルト）
+
+# 生成デフォルト値
+defaults:
+  width: 1280
+  height: 720
+  fps: 24
+
+# オーディオ設定
+audio:
+  # AI音声生成プロバイダー (elevenlabs, openai)
+  tts_provider: "openai"
+  # ElevenLabs API Key (環境変数 ELEVENLABS_API_KEY でも可)
+  elevenlabs_api_key: ""
+  # OpenAI API Key (環境変数 OPENAI_API_KEY でも可)
+  openai_api_key: ""

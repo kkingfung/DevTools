@@ -1,0 +1,106 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "dreamshaper_8.safetensors"
+    },
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "2": {
+    "class_type": "ADE_LoadAnimateDiffModel",
+    "inputs": {
+      "model_name": "mm_sd_v15_v2.ckpt"
+    },
+    "_meta": {
+      "title": "Load AnimateDiff Model"
+    }
+  },
+  "3": {
+    "class_type": "ADE_ApplyAnimateDiffModel",
+    "inputs": {
+      "model": ["1", 0],
+      "motion_model": ["2", 0],
+      "start_percent": 0.0,
+      "end_percent": 1.0
+    },
+    "_meta": {
+      "title": "Apply AnimateDiff Model"
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "a beautiful sunset over the ocean, cinematic, 4k",
+      "clip": ["1", 1]
+    },
+    "_meta": {
+      "title": "Positive Prompt"
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "ugly, blurry, low quality, distorted",
+      "clip": ["1", 1]
+    },
+    "_meta": {
+      "title": "Negative Prompt"
+    }
+  },
+  "6": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "batch_size": 16
+    },
+    "_meta": {
+      "title": "Empty Latent (16 frames)"
+    }
+  },
+  "7": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 0,
+      "steps": 20,
+      "cfg": 7.5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "denoise": 1.0,
+      "model": ["3", 0],
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "latent_image": ["6", 0]
+    },
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["7", 0],
+      "vae": ["1", 2]
+    },
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "9": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["8", 0],
+      "frame_rate": 8,
+      "loop_count": 0,
+      "filename_prefix": "AnimateDiff",
+      "format": "video/h264-mp4",
+      "pingpong": false,
+      "save_output": true
+    },
+    "_meta": {
+      "title": "Video Combine"
+    }
+  }
+}

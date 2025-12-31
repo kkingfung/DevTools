@@ -1,0 +1,93 @@
+{
+  "1": {
+    "class_type": "ImageOnlyCheckpointLoader",
+    "inputs": {
+      "ckpt_name": "svd_xt.safetensors"
+    },
+    "_meta": {
+      "title": "Load SVD Checkpoint"
+    }
+  },
+  "2": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "input.png"
+    },
+    "_meta": {
+      "title": "Load Reference Image"
+    }
+  },
+  "3": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": ["2", 0],
+      "upscale_method": "lanczos",
+      "width": 1024,
+      "height": 576,
+      "crop": "center"
+    },
+    "_meta": {
+      "title": "Scale to SVD Resolution"
+    }
+  },
+  "4": {
+    "class_type": "SVD_img2vid_Conditioning",
+    "inputs": {
+      "clip_vision": ["1", 1],
+      "init_image": ["3", 0],
+      "vae": ["1", 2],
+      "width": 1024,
+      "height": 576,
+      "video_frames": 25,
+      "motion_bucket_id": 127,
+      "fps": 6,
+      "augmentation_level": 0.0
+    },
+    "_meta": {
+      "title": "SVD Conditioning"
+    }
+  },
+  "5": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 0,
+      "steps": 20,
+      "cfg": 2.5,
+      "sampler_name": "euler",
+      "scheduler": "karras",
+      "denoise": 1.0,
+      "model": ["1", 0],
+      "positive": ["4", 0],
+      "negative": ["4", 1],
+      "latent_image": ["4", 2]
+    },
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "6": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["5", 0],
+      "vae": ["1", 2]
+    },
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "7": {
+    "class_type": "VHS_VideoCombine",
+    "inputs": {
+      "images": ["6", 0],
+      "frame_rate": 6,
+      "loop_count": 0,
+      "filename_prefix": "SVD",
+      "format": "video/h264-mp4",
+      "pingpong": false,
+      "save_output": true
+    },
+    "_meta": {
+      "title": "Video Combine"
+    }
+  }
+}
