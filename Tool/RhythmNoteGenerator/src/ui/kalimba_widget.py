@@ -92,10 +92,43 @@ class KalimbaWidget(QWidget):
         self.view_end = min(self.duration, end) if self.duration > 0 else end
         self.update()
 
-    def set_playback_position(self, position: float):
-        """Set current playback position."""
+    def set_playback_position(self, position: float, auto_scroll: bool = True):
+        """Set current playback position with auto-scroll (notes scroll past fixed playhead)."""
         self.playback_position = position
+        scrolled = False
+
+        # Auto-scroll: keep playhead at fixed position (20% from bottom of tab area)
+        # But at the start, don't scroll until playback reaches the threshold
+        if auto_scroll and self.duration > 0:
+            view_range = self.view_end - self.view_start
+            # Playhead fixed position corresponds to 20% into the view range
+            threshold = view_range * 0.2
+
+            # Only start scrolling once we're past the threshold from the start
+            if position > threshold:
+                new_start = position - threshold
+                new_end = new_start + view_range
+
+                # Clamp to valid range
+                if new_end > self.duration:
+                    new_end = self.duration
+                    new_start = max(0, new_end - view_range)
+
+                if abs(new_start - self.view_start) > 0.001:
+                    self.view_start = new_start
+                    self.view_end = new_end
+                    scrolled = True
+            elif self.view_start != 0:
+                # At the beginning, ensure view starts at 0
+                self.view_start = 0
+                self.view_end = view_range
+                scrolled = True
+
         self.update()
+
+        # Emit signal if view changed for scrollbar sync
+        if scrolled:
+            self.view_range_changed.emit(self.view_start, self.view_end)
 
     def set_transpose(self, octaves: int):
         """Set octave transposition for out-of-range notes."""
@@ -124,7 +157,7 @@ class KalimbaWidget(QWidget):
         return self.KALIMBA_17_C.get(adjusted)
 
     def paintEvent(self, event):
-        """Paint the kalimba tablature."""
+        """Paint the kalimba tablature (tines at bottom, time flows bottom to top)."""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
@@ -134,29 +167,31 @@ class KalimbaWidget(QWidget):
         # Background
         painter.fillRect(0, 0, width, height, self.bg_color)
 
-        # Layout areas
+        # Layout areas - tines at BOTTOM, tab area above
         tine_area_height = 60  # Bottom area showing tines
+        tab_area_top = 0  # Tab area starts at top
         tab_area_height = height - tine_area_height
+        tine_area_top = tab_area_height  # Tines start after tab area
         time_range = self.view_end - self.view_start
 
         if time_range <= 0:
             return
 
-        # Draw time grid
-        self._draw_time_grid(painter, width, tab_area_height, time_range)
+        # Draw time grid (in tab area at top)
+        tine_positions = self._get_tine_x_positions(width)
+        self._draw_time_grid(painter, width, tab_area_top, tab_area_height, time_range)
 
         # Draw tine lanes (vertical lines in tab area)
-        tine_positions = self._get_tine_x_positions(width)
-        self._draw_tine_lanes(painter, tine_positions, tab_area_height)
+        self._draw_tine_lanes(painter, tine_positions, tab_area_top, tab_area_height)
 
-        # Draw notes
-        self._draw_notes(painter, tine_positions, tab_area_height, time_range)
+        # Draw notes (time flows bottom to top)
+        self._draw_notes(painter, tine_positions, tab_area_top, tab_area_height, time_range)
 
-        # Draw kalimba tines at bottom
-        self._draw_kalimba_tines(painter, tine_positions, tab_area_height, tine_area_height)
+        # Draw kalimba tines at BOTTOM
+        self._draw_kalimba_tines(painter, tine_positions, tine_area_top, tine_area_height)
 
         # Draw playhead
-        self._draw_playhead(painter, width, height, time_range)
+        self._draw_playhead(painter, width, tab_area_top, tab_area_height, time_range)
 
     def _get_tine_x_positions(self, width: int) -> Dict[int, float]:
         """Get x positions for each tine number."""
@@ -176,8 +211,8 @@ class KalimbaWidget(QWidget):
 
         return positions
 
-    def _draw_time_grid(self, painter: QPainter, width: int, height: int, time_range: float):
-        """Draw time grid lines."""
+    def _draw_time_grid(self, painter: QPainter, width: int, tab_top: int, tab_height: int, time_range: float):
+        """Draw time grid lines (time flows bottom to top)."""
         painter.setPen(QPen(self.grid_color, 1))
 
         # Calculate appropriate grid interval
@@ -192,26 +227,27 @@ class KalimbaWidget(QWidget):
         else:
             interval = 10.0
 
-        # Draw horizontal lines (time markers)
+        # Draw horizontal lines (time markers) - bottom to top
         t = (int(self.view_start / interval) + 1) * interval
         while t < self.view_end:
-            y = (t - self.view_start) / time_range * height
+            # Flip y: earlier times at bottom, later at top
+            y = tab_top + tab_height - ((t - self.view_start) / time_range * tab_height)
             painter.drawLine(0, int(y), width, int(y))
 
             # Time label
             painter.drawText(5, int(y) - 2, f"{t:.1f}s")
             t += interval
 
-    def _draw_tine_lanes(self, painter: QPainter, positions: Dict[int, float], height: int):
+    def _draw_tine_lanes(self, painter: QPainter, positions: Dict[int, float], tab_top: int, tab_height: int):
         """Draw vertical lane lines for each tine."""
         painter.setPen(QPen(self.grid_color, 1, Qt.DotLine))
 
         for tine_num, x in positions.items():
-            painter.drawLine(int(x), 0, int(x), height)
+            painter.drawLine(int(x), tab_top, int(x), tab_top + tab_height)
 
     def _draw_notes(self, painter: QPainter, positions: Dict[int, float],
-                    tab_height: int, time_range: float):
-        """Draw detected notes on the tablature."""
+                    tab_top: int, tab_height: int, time_range: float):
+        """Draw detected notes on the tablature (time flows bottom to top)."""
         note_width = 24
         note_height = 20
 
@@ -233,8 +269,8 @@ class KalimbaWidget(QWidget):
             if x is None:
                 continue
 
-            # Calculate y position (time flows downward)
-            y = (note.time - self.view_start) / time_range * tab_height
+            # Calculate y position (time flows bottom to top - flip y axis)
+            y = tab_top + tab_height - ((note.time - self.view_start) / time_range * tab_height)
 
             # Color based on note
             color_idx = note.midi_note % len(self.note_colors)
@@ -256,17 +292,16 @@ class KalimbaWidget(QWidget):
             display_name = note_name[:-1] if note_name[-1].isdigit() else note_name
             painter.drawText(rect, Qt.AlignCenter, display_name)
 
-            # Draw duration line for longer notes
+            # Draw duration line for longer notes (upward from note)
             if note.duration > 0.1:
-                end_y = (note.time + note.duration - self.view_start) / time_range * tab_height
-                if end_y > y + note_height / 2:
+                end_y = tab_top + tab_height - ((note.time + note.duration - self.view_start) / time_range * tab_height)
+                if end_y < y - note_height / 2:
                     painter.setPen(QPen(color, 3))
-                    painter.drawLine(int(x), int(y + note_height / 2), int(x), int(end_y))
+                    painter.drawLine(int(x), int(y - note_height / 2), int(x), int(end_y))
 
     def _draw_kalimba_tines(self, painter: QPainter, positions: Dict[int, float],
-                            tab_height: int, tine_height: int):
-        """Draw the kalimba tine visualization at bottom."""
-        y_start = tab_height
+                            y_start: int, tine_height: int):
+        """Draw the kalimba tine visualization at bottom (tines point upward)."""
         margin = 5
 
         # Background for tine area
@@ -286,8 +321,9 @@ class KalimbaWidget(QWidget):
             length_factor = 1.0 - abs(pos) * 0.03
             tine_length = base_length * length_factor
 
-            # Draw tine
-            rect = QRectF(x - tine_width / 2, y_start + margin,
+            # Draw tine (pointing upward from bottom)
+            tine_bottom = y_start + tine_height - margin
+            rect = QRectF(x - tine_width / 2, tine_bottom - tine_length,
                          tine_width, tine_length)
             painter.setBrush(QBrush(self.tine_color))
             painter.setPen(QPen(self.tine_highlight, 1))
@@ -300,16 +336,24 @@ class KalimbaWidget(QWidget):
             display_name = name[:-1] if name[-1].isdigit() else name
             painter.drawText(rect, Qt.AlignCenter, display_name)
 
-    def _draw_playhead(self, painter: QPainter, width: int, height: int, time_range: float):
-        """Draw the playback position indicator."""
-        if self.view_start <= self.playback_position <= self.view_end:
-            y = (self.playback_position - self.view_start) / time_range * (height - 60)
+    def _draw_playhead(self, painter: QPainter, width: int, tab_top: int, tab_height: int, time_range: float):
+        """Draw the playback position indicator (fixed after initial period)."""
+        # Threshold: 20% of view range - playhead moves until reaching this point
+        threshold = time_range * 0.2
 
-            painter.setPen(QPen(self.playhead_color, 2))
-            painter.drawLine(0, int(y), width, int(y))
+        if self.view_start == 0 and self.playback_position < threshold:
+            # At the beginning: playhead moves with playback position
+            # Calculate y based on actual position (time flows bottom to top)
+            y = tab_top + tab_height - ((self.playback_position - self.view_start) / time_range * tab_height)
+        else:
+            # After threshold: playhead stays at fixed position (20% from bottom)
+            y = tab_top + tab_height * 0.8
 
-            # Draw time indicator
-            painter.drawText(width - 50, int(y) - 2, f"{self.playback_position:.2f}s")
+        painter.setPen(QPen(self.playhead_color, 2))
+        painter.drawLine(0, int(y), width, int(y))
+
+        # Draw time indicator
+        painter.drawText(width - 60, int(y) - 2, f"{self.playback_position:.2f}s")
 
     def wheelEvent(self, event):
         """Handle mouse wheel for zooming."""

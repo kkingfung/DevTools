@@ -62,10 +62,11 @@ class PitchDetectionWorker(QThread):
     progress = Signal(int, str)   # Progress percent and message
     error = Signal(str)
 
-    def __init__(self, analyzer: AudioAnalyzer, file_path: str):
+    def __init__(self, analyzer: AudioAnalyzer, file_path: str, method: str = "pyin"):
         super().__init__()
         self.analyzer = analyzer
         self.file_path = file_path
+        self.method = method
 
     def _progress_callback(self, percent: int, message: str):
         """Callback for progress updates from analyzer."""
@@ -75,6 +76,7 @@ class PitchDetectionWorker(QThread):
         try:
             pitch_notes = self.analyzer.detect_pitches(
                 self.file_path,
+                method=self.method,
                 progress_callback=self._progress_callback
             )
             self.finished.emit(pitch_notes)
@@ -353,6 +355,21 @@ class MainWindow(QMainWindow):
         kalimba_header = QHBoxLayout()
         kalimba_header.addWidget(QLabel("Kalimba Tab (17-key C major)"))
 
+        # Detection method dropdown
+        kalimba_header.addWidget(QLabel("Method:"))
+        self.pitch_method_combo = QComboBox()
+        self.pitch_method_combo.addItem("Standard (PYIN)", "pyin")
+        self.pitch_method_combo.addItem("Harmonic Separation", "hpss_pyin")
+        self.pitch_method_combo.addItem("Spectral Tracking", "piptrack")
+        self.pitch_method_combo.addItem("Melody Focus", "melodia")
+        self.pitch_method_combo.setToolTip(
+            "Standard: Basic pitch detection\n"
+            "Harmonic Separation: Removes drums/percussion first\n"
+            "Spectral Tracking: Follows dominant frequencies\n"
+            "Melody Focus: Enhanced for main melody extraction"
+        )
+        kalimba_header.addWidget(self.pitch_method_combo)
+
         # Pitch detection button
         self.detect_pitch_btn = QPushButton("Detect Pitches")
         self.detect_pitch_btn.setEnabled(False)
@@ -476,6 +493,9 @@ class MainWindow(QMainWindow):
 
         # Lane view range changes - only update scrollbar (independent zoom)
         self.lane_widget.view_range_changed.connect(self._on_lane_view_range_changed)
+
+        # Kalimba view range changes - update kalimba scrollbar
+        self.kalimba_widget.view_range_changed.connect(self._on_kalimba_view_range_changed)
 
         # Lane note editing signals
         self.lane_widget.note_added.connect(self._add_note)
@@ -815,6 +835,11 @@ class MainWindow(QMainWindow):
         """Update scrollbar when lane widget view range changes (independent zoom)."""
         self._update_scrollbar_from_view()
 
+    @Slot(float, float)
+    def _on_kalimba_view_range_changed(self, start: float, end: float):
+        """Update kalimba scrollbar when view range changes (from auto-scroll or wheel zoom)."""
+        self._update_kalimba_scrollbar_from_view()
+
     def _on_keys_changed(self, value: int):
         """Update lane widget when keys change."""
         self.lane_widget.set_num_keys(value)
@@ -988,12 +1013,16 @@ class MainWindow(QMainWindow):
         if not self.current_file or not self.analysis:
             return
 
+        # Get selected method
+        method = self.pitch_method_combo.currentData()
+        method_name = self.pitch_method_combo.currentText()
+
         # Disable button during detection
         self.detect_pitch_btn.setEnabled(False)
         self.detect_pitch_btn.setText("Detecting...")
 
         # Show progress dialog with percentage
-        self.pitch_progress = QProgressDialog("Initializing pitch detection...", "Cancel", 0, 100, self)
+        self.pitch_progress = QProgressDialog(f"Initializing pitch detection ({method_name})...", "Cancel", 0, 100, self)
         self.pitch_progress.setWindowTitle("Pitch Detection")
         self.pitch_progress.setWindowModality(Qt.WindowModal)
         self.pitch_progress.setMinimumDuration(0)
@@ -1001,8 +1030,8 @@ class MainWindow(QMainWindow):
         self.pitch_progress.setValue(0)
         self.pitch_progress.show()
 
-        # Run in background thread
-        self.pitch_worker = PitchDetectionWorker(self.analyzer, self.current_file)
+        # Run in background thread with selected method
+        self.pitch_worker = PitchDetectionWorker(self.analyzer, self.current_file, method)
         self.pitch_worker.progress.connect(self._on_pitch_progress)
         self.pitch_worker.finished.connect(self._on_pitch_detection_complete)
         self.pitch_worker.error.connect(self._on_pitch_detection_error)

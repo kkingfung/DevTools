@@ -168,14 +168,17 @@ class AudioAnalyzer:
                        fmin: float = 65.0,  # C2
                        fmax: float = 2100.0,  # C7
                        min_duration: float = 0.05,
+                       method: str = "pyin",  # "pyin", "hpss_pyin", "piptrack", "melodia"
                        progress_callback: Optional[callable] = None) -> List[PitchNote]:
-        """Detect pitches/notes from audio using pyin algorithm.
+        """Detect pitches/notes from audio using various algorithms.
 
         Args:
             file_path: Path to audio file
             fmin: Minimum frequency to detect (Hz)
             fmax: Maximum frequency to detect (Hz)
             min_duration: Minimum note duration in seconds
+            method: Detection method - "pyin" (default), "hpss_pyin" (harmonic separation + pyin),
+                    "piptrack" (spectral peak tracking), "melodia" (melody-focused)
             progress_callback: Optional callback(percent, message) for progress updates
 
         Returns:
@@ -186,13 +189,89 @@ class AudioAnalyzer:
 
         y, sr = self.load_audio(file_path)
 
-        if progress_callback:
-            progress_callback(15, "Running pitch detection algorithm...")
+        if method == "hpss_pyin":
+            # Harmonic-Percussive Source Separation + PYIN
+            # Better for music with drums/percussion
+            if progress_callback:
+                progress_callback(10, "Separating harmonic content...")
+            y_harmonic, y_percussive = librosa.effects.hpss(y)
+            y = y_harmonic  # Use only harmonic content
 
-        # Use pyin for pitch detection (better for monophonic audio)
-        f0, voiced_flag, voiced_probs = librosa.pyin(
-            y, fmin=fmin, fmax=fmax, sr=sr, hop_length=self.hop_length
-        )
+            if progress_callback:
+                progress_callback(25, "Running pitch detection on harmonic content...")
+
+            f0, voiced_flag, voiced_probs = librosa.pyin(
+                y, fmin=fmin, fmax=fmax, sr=sr, hop_length=self.hop_length
+            )
+
+        elif method == "piptrack":
+            # Spectral peak tracking - good for finding dominant melody
+            if progress_callback:
+                progress_callback(15, "Running spectral pitch tracking...")
+
+            # Compute spectrogram
+            S = np.abs(librosa.stft(y, hop_length=self.hop_length))
+
+            # Get pitch tracks
+            pitches, magnitudes = librosa.piptrack(
+                S=S, sr=sr, fmin=fmin, fmax=fmax, hop_length=self.hop_length
+            )
+
+            # Extract the most prominent pitch at each frame
+            f0 = []
+            voiced_probs = []
+            for t in range(pitches.shape[1]):
+                # Get the bin with maximum magnitude
+                mag_col = magnitudes[:, t]
+                if mag_col.max() > 0:
+                    idx = mag_col.argmax()
+                    f0.append(pitches[idx, t])
+                    voiced_probs.append(min(1.0, mag_col[idx] / mag_col.max()))
+                else:
+                    f0.append(0)
+                    voiced_probs.append(0)
+
+            f0 = np.array(f0)
+            voiced_probs = np.array(voiced_probs)
+            voiced_flag = (f0 > 0) & (voiced_probs > 0.1)
+            # Replace zeros with nan for consistency
+            f0[~voiced_flag] = np.nan
+
+        elif method == "melodia":
+            # Melody-focused: HPSS + enhanced PYIN with stricter voicing
+            if progress_callback:
+                progress_callback(10, "Extracting melody (harmonic separation)...")
+
+            # Separate harmonic content
+            y_harmonic, _ = librosa.effects.hpss(y, margin=3.0)
+
+            if progress_callback:
+                progress_callback(20, "Applying melody enhancement...")
+
+            # Apply pre-emphasis to boost higher frequencies (melody typically in mid-high range)
+            y_enhanced = librosa.effects.preemphasis(y_harmonic)
+
+            if progress_callback:
+                progress_callback(35, "Running pitch detection...")
+
+            # Use PYIN with tighter parameters for melody
+            f0, voiced_flag, voiced_probs = librosa.pyin(
+                y_enhanced, fmin=fmin, fmax=fmax, sr=sr, hop_length=self.hop_length,
+                fill_na=None  # Keep NaN for unvoiced
+            )
+
+            # Apply stricter voicing threshold for cleaner melody
+            voiced_flag = voiced_flag & (voiced_probs > 0.5)
+            f0[~voiced_flag] = np.nan
+
+        else:
+            # Default: standard PYIN
+            if progress_callback:
+                progress_callback(15, "Running pitch detection algorithm...")
+
+            f0, voiced_flag, voiced_probs = librosa.pyin(
+                y, fmin=fmin, fmax=fmax, sr=sr, hop_length=self.hop_length
+            )
 
         if progress_callback:
             progress_callback(70, "Processing detected pitches...")
