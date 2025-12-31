@@ -30,6 +30,7 @@ Unity用エディタ拡張からスタンドアロンのデスクトップアプ
 |---------|------|--------|
 | **GameDevScheduler** | ゲーム開発チーム向けスケジュール管理ツール。ガントチャート、カレンダー、テーブルビューでタスク管理。Tauri 2.0ベースのデスクトップアプリ | `Tool/GameDevScheduler` ディレクトリで `npm install && npm run tauri dev` を実行 |
 | **TextToVideo** | AIテキスト→ビデオ生成ツール。Replicate/Fal.ai/ComfyUI対応。5秒〜90秒のビデオ生成、BGM/効果音追加、AI音楽生成機能付き。Gradio Web UI | `Tool/TextToVideo` ディレクトリで `pip install -r requirements.txt && python run.py` → ブラウザで http://127.0.0.1:7860 を開く |
+| **RhythmNoteGenerator** | リズムゲーム用ノート譜面自動生成ツール。音声解析でビート・オンセット検出、ピッチ検出でカリンバタブ生成。1〜6キー、5段階難易度対応。PySide6デスクトップアプリ | `Tool/RhythmNoteGenerator` ディレクトリで `pip install -r requirements.txt && python run.py` を実行 |
 
 ---
 
@@ -56,9 +57,13 @@ DevTools/
 │   │   ├── src/                    # React フロントエンド
 │   │   ├── src-tauri/              # Rust バックエンド
 │   │   └── README.md               # 詳細ドキュメント
-│   └── TextToVideo/                # AI ビデオ生成ツール
+│   ├── TextToVideo/                # AI ビデオ生成ツール
+│   │   ├── src/                    # Python ソースコード
+│   │   ├── workflows/              # ComfyUI ワークフロー
+│   │   └── README.md               # 詳細ドキュメント
+│   └── RhythmNoteGenerator/        # リズムゲームノート生成ツール
 │       ├── src/                    # Python ソースコード
-│       ├── workflows/              # ComfyUI ワークフロー
+│       ├── templates/              # エクスポートテンプレート
 │       └── README.md               # 詳細ドキュメント
 ```
 
@@ -101,6 +106,19 @@ APIキーの設定（初回のみ）:
 copy config.example.yaml config.yaml
 # config.yaml を編集してReplicate/Fal.aiのAPIキーを追加
 ```
+
+### RhythmNoteGenerator の起動
+
+```bash
+cd Tool/RhythmNoteGenerator
+pip install -r requirements.txt
+python run.py
+```
+
+機能:
+- 音声ファイルからリズムゲーム用ノート譜面を自動生成
+- ピッチ検出でカリンバタブを生成
+- 複数フォーマットでエクスポート（JSON, YAML, CSV等）
 
 ---
 

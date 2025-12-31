@@ -1,0 +1,17 @@
+# Audio processing
+librosa>=0.10.0
+numpy>=1.24.0
+scipy>=1.10.0
+soundfile>=0.12.0
+
+# UI
+PySide6>=6.5.0
+
+# Audio playback
+pygame>=2.5.0
+
+# Template support
+pyyaml>=6.0
+
+# File format support
+pydub>=0.25.1

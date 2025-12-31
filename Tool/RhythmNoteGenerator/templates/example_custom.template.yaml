@@ -1,0 +1,34 @@
+# Example custom template
+# Copy and modify this file to create your own template
+# Place in the 'templates' folder and it will be auto-loaded
+
+name: "Custom Example"
+description: "Example custom template - modify as needed"
+file_extension: ".chart"
+format_type: "text"  # Options: json, yaml, csv, text
+
+# Note table format
+note_table_format: "custom"  # Options: list, csv, custom
+note_table_template: "${time_ms}:${lane}:${duration_ms}"  # Variables: time, time_ms, lane, duration, duration_ms
+
+# Separator between notes (for text format)
+separator: "\n"
+
+# Header template - written before notes
+# Available variables: title, artist, audio_file, bpm, offset, duration, num_keys, difficulty, difficulty_value
+header_template: |
+  [CHART INFO]
+  Title: ${title}
+  Artist: ${artist}
+  AudioFile: ${audio_file}
+  BPM: ${bpm}
+  Keys: ${num_keys}
+  Difficulty: ${difficulty} (${difficulty_value}/10)
+  Duration: ${duration}s
+
+  [NOTES]
+
+# Footer template - written after notes
+footer_template: |
+
+  [END]
