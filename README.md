@@ -1,8 +1,6 @@
 # DevTools - ゲーム開発支援ツール集
 *複数プロジェクトで再利用可能な開発支援ツールのライブラリ*
 
-その一つとして
-
 <img src="/Result1.PNG" width="300"><img src="/Result2.PNG" width="300">
 
 ## 概要
