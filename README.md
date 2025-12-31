@@ -3,7 +3,7 @@
 
 その一つとして
 
-<img src="/Result1.PNG" width="800">
+<img src="/Result1.PNG" width="300"><img src="/Result2.PNG" width="300">
 
 ## 概要
 
