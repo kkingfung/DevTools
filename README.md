@@ -31,6 +31,7 @@ Unity用エディタ拡張、UE5プラグイン、スタンドアロンのデス
 | **UE5UnifiedDebugPanel** | UE5の内部を"人間の言葉"に翻訳する統合デバッグパネル。Gameplay State、Ability (GAS)、Animation、AI、Tick情報を1画面で表示 | `Plugins` フォルダにコピー → `Window > Unified Debug Panel` → Watch Player で監視開始 |
 | **BlueprintComplexityAnalyzer** | BPが死にかけているかを数値で警告。ノード数、依存深度、Tick使用率、循環参照、C++化推奨度を信号機表示で可視化 | `Plugins` フォルダにコピー → `Window > BP Complexity Analyzer` → Analyze Selected |
 | **AssetDependencyCostInspector** | 「このアセット、実際いくら払ってる？」依存チェーン、メモリコスト、Streaming影響、読み込みタイミングを可視化。Nanite/Lumen時代のコスト感覚を取り戻す | `Plugins` フォルダにコピー → `Window > Asset Cost Inspector` または アセット右クリック → 「コストを分析」 |
+| **GameplayLiveTuningDashboard** | 「数値変更→即反映→影響を比較」を超高速化。パラメータのレイヤー管理、ライブ変更、Before/After比較、安全ベンチマーク機能。バランス調整の時間を半分に | `Plugins` フォルダにコピー → `Window > Live Tuning Dashboard` |
 
 ### スタンドアロンアプリ
 
@@ -68,6 +69,9 @@ DevTools/
 │   │   ├── Source/                 # C++ ソースコード
 │   │   └── README.md               # 詳細ドキュメント
 │   ├── AssetDependencyCostInspector/ # UE5 アセットコスト分析ツール
+│   │   ├── Source/                 # C++ ソースコード
+│   │   └── README.md               # 詳細ドキュメント
+│   ├── GameplayLiveTuningDashboard/ # UE5 ライブチューニングダッシュボード
 │   │   ├── Source/                 # C++ ソースコード
 │   │   └── README.md               # 詳細ドキュメント
 │   ├── GameDevScheduler/           # Tauri 2.0 デスクトップアプリ
@@ -130,6 +134,18 @@ Window > Asset Cost Inspector
 - **フォルダ右クリック** → 「フォルダのコストを分析」で一括分析
 - 依存チェーン、メモリコスト、Streaming影響、Nanite/Lumenコストを可視化
 - 問題検出と最適化推奨を自動生成
+
+#### GameplayLiveTuningDashboard
+
+```
+Window > Live Tuning Dashboard
+```
+
+- パラメータをレイヤーで管理（キャラクター/武器/スキル/ステージ/AI/経済）
+- ゲーム実行中に即変更＆即反映
+- 変更履歴の比較表示（Before vs After）
+- 安全ベンチマーク機能（閾値突破を警告）
+- プリセット保存・エクスポート/インポート対応
 
 ### GameDevScheduler の起動
 
