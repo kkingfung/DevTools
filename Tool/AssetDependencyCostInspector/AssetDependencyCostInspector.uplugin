@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "Asset Dependency & Cost Inspector",
+	"Description": "このアセット、実際いくら払ってる？依存チェーン、メモリコスト、Streaming影響、読み込みタイミングを可視化。UE5のNanite/Lumen時代のコスト感覚を取り戻す。",
+	"Category": "Developer Tools",
+	"CreatedBy": "DevTools",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": true,
+	"Modules": [
+		{
+			"Name": "AssetDependencyCostInspector",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac",
+				"Linux"
+			]
+		}
+	]
+}

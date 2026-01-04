@@ -6,7 +6,7 @@
 ## 概要
 
 このリポジトリは、ゲーム開発を支援する **再利用可能なツール** を管理しています。
-Unity用エディタ拡張からスタンドアロンのデスクトップアプリまで、様々なツールを収録しています。
+Unity用エディタ拡張、UE5プラグイン、スタンドアロンのデスクトップアプリまで、様々なツールを収録しています。
 
 必要に応じて `Tool/` フォルダから他プロジェクトにコピーして利用できます。
 
@@ -23,6 +23,14 @@ Unity用エディタ拡張からスタンドアロンのデスクトップアプ
 | **RuntimeAssetTracker** | ランタイムアセット追跡ツール。シーン遷移時にTexture/AudioClipのスナップショットを取得し、残存アセット（メモリリーク候補）を検出 | `Runtime` と `Editor` フォルダをプロジェクトにコピー → シーンに `RuntimeAssetTrackerManager` を配置 → メニュー `Tools > Runtime Asset Tracker` |
 | **InputLatencyAnalyzer** | 入力遅延計測ツール。入力から画面変化/アニメーション/オーディオまでの遅延をms・フレーム単位で計測。統計情報とセッション比較機能付き | `Runtime` と `Editor` フォルダをプロジェクトにコピー → シーンに `InputLatencyMeasurer` を配置 → F9で計測開始 → メニュー `Tools > Input Latency Analyzer` |
 | **LogicPresentationSync** | ロジック/プレゼンテーション同期分析ツール。ゲームロジック（ヒット判定等）とプレゼンテーション（VFX、SE、アニメ）のタイミングずれを検出 | `Runtime` と `Editor` フォルダをプロジェクトにコピー → コードに `SyncEventMarker.MarkLogic/MarkVFX` 等を追加 → メニュー `Tools > Logic Presentation Sync` |
+
+### UE5 プラグイン
+
+| ツール名 | 説明 | 使い方 |
+|---------|------|--------|
+| **UE5UnifiedDebugPanel** | UE5の内部を"人間の言葉"に翻訳する統合デバッグパネル。Gameplay State、Ability (GAS)、Animation、AI、Tick情報を1画面で表示 | `Plugins` フォルダにコピー → `Window > Unified Debug Panel` → Watch Player で監視開始 |
+| **BlueprintComplexityAnalyzer** | BPが死にかけているかを数値で警告。ノード数、依存深度、Tick使用率、循環参照、C++化推奨度を信号機表示で可視化 | `Plugins` フォルダにコピー → `Window > BP Complexity Analyzer` → Analyze Selected |
+| **AssetDependencyCostInspector** | 「このアセット、実際いくら払ってる？」依存チェーン、メモリコスト、Streaming影響、読み込みタイミングを可視化。Nanite/Lumen時代のコスト感覚を取り戻す | `Plugins` フォルダにコピー → `Window > Asset Cost Inspector` または アセット右クリック → 「コストを分析」 |
 
 ### スタンドアロンアプリ
 
@@ -53,6 +61,15 @@ DevTools/
 │   ├── LogicPresentationSync/
 │   │   ├── Runtime/                # ランタイムコンポーネント
 │   │   └── Editor/                 # Unity Editor拡張
+│   ├── UE5UnifiedDebugPanel/       # UE5 統合デバッグパネル
+│   │   ├── Source/                 # C++ ソースコード
+│   │   └── README.md               # 詳細ドキュメント
+│   ├── BlueprintComplexityAnalyzer/ # UE5 BP複雑度アナライザー
+│   │   ├── Source/                 # C++ ソースコード
+│   │   └── README.md               # 詳細ドキュメント
+│   ├── AssetDependencyCostInspector/ # UE5 アセットコスト分析ツール
+│   │   ├── Source/                 # C++ ソースコード
+│   │   └── README.md               # 詳細ドキュメント
 │   ├── GameDevScheduler/           # Tauri 2.0 デスクトップアプリ
 │   │   ├── src/                    # React フロントエンド
 │   │   ├── src-tauri/              # Rust バックエンド
@@ -76,6 +93,43 @@ DevTools/
 1. 必要なツールのフォルダを Unity プロジェクトの `Assets/` 配下にコピー
 2. Runtime フォルダがある場合は、必要なコンポーネントをシーンに配置
 3. メニューからツールウィンドウを開いて使用
+
+### UE5 プラグインの導入
+
+1. 必要なプラグインフォルダを UE5 プロジェクトの `Plugins/` 配下にコピー
+2. エディタを再起動
+3. `Window` メニューからツールパネルを開く
+
+#### UE5UnifiedDebugPanel
+
+```
+Window > Unified Debug Panel
+```
+
+- **Watch Player**: プレイヤーPawnを監視
+- リアルタイムでAbility、Animation、AI状態を表示
+- 人間向けサマリーで「今何をしているか」が即座に分かる
+
+#### BlueprintComplexityAnalyzer
+
+```
+Window > BP Complexity Analyzer
+```
+
+- **Analyze Selected**: 選択中のBPを分析
+- **Analyze Project**: プロジェクト全体を分析
+- 信号機表示（Green/Yellow/Red）で健全性を可視化
+
+#### AssetDependencyCostInspector
+
+```
+Window > Asset Cost Inspector
+```
+
+- **アセット右クリック** → 「コストを分析」で個別分析
+- **フォルダ右クリック** → 「フォルダのコストを分析」で一括分析
+- 依存チェーン、メモリコスト、Streaming影響、Nanite/Lumenコストを可視化
+- 問題検出と最適化推奨を自動生成
 
 ### GameDevScheduler の起動
 
